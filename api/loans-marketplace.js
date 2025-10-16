@@ -25,7 +25,7 @@ export default function handler(req, res) {
         status: "AVAILABLE",
         additionalData: {
           upysAmount: {
-            to: 1000,
+            fixed: 1000,
           },
           productPageData: [
             {
