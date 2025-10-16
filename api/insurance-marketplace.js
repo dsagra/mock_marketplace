@@ -29,6 +29,10 @@ export default function handler(req, res) {
               fieldTitle: "Un valor",
               fieldValue: "2039",
             },
+            {
+              fieldTitle: "",
+              fieldValue: "",
+            },
           ],
         },
       },
