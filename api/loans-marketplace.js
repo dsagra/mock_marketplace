@@ -11,7 +11,7 @@ export default function handler(req, res) {
 
   // Solo aceptamos PUT
   if (req.method !== 'PUT') {
-    return res.status(405).json({
+    return res.status(405).json({ 
       success: false,
       message: 'Método no permitido. Usa PUT.',
     });
@@ -46,7 +46,6 @@ export default function handler(req, res) {
         additionalData: {
           upysAmount: {
             to: 1000,
-            fixed: 1000,
           },
         },
       },
