@@ -30,7 +30,7 @@ export default function handler(req, res) {
           status: "AVAILABLE",
           additionalData: {
             upysAmount: {
-              to: 1000,
+              to: 1500,
             },
             productPageData: [
               {
@@ -50,7 +50,7 @@ export default function handler(req, res) {
           status: "ADQUIRED",
           additionalData: {
             upysAmount: {
-              fixed: 1000,
+              fixed: 700,
             },
           },
         },
