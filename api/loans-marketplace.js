@@ -1,6 +1,6 @@
 export default function handler(req, res) {
   // Variable para controlar si se aplica delay o no
-  const enableDelay = false; // Cambiar a false para desactivar el delay
+  const enableDelay = true; // Cambiar a false para desactivar el delay
   
   // Configuración básica de CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
