@@ -17,27 +17,33 @@ export default function handler(req, res) {
     });
   }
 
-  // Respuesta fija
-  const response = {
-    products: [
-      {
-        productCode: "SEGURO_DE_HOGAR",
-        status: "AVAILABLE",
-        additionalData: {
-          productPageData: [
-            {
-              fieldTitle: "Un valor",
-              fieldValue: "2039",
-            },
-            {
-              fieldTitle: "",
-              fieldValue: "",
-            },
-          ],
-        },
-      },
-    ],
-  };
+  // Generar delay aleatorio entre 100ms y 2000ms
+  const randomDelay = Math.floor(Math.random() * (2000 - 100 + 1)) + 100;
 
-  return res.status(200).json(response);
+  // Simular delay antes de responder
+  setTimeout(() => {
+    // Respuesta fija
+    const response = {
+      products: [
+        {
+          productCode: "SEGURO_DE_HOGAR",
+          status: "AVAILABLE",
+          additionalData: {
+            productPageData: [
+              {
+                fieldTitle: "Un valor",
+                fieldValue: "2039",
+              },
+              {
+                fieldTitle: "",
+                fieldValue: "",
+              },
+            ],
+          },
+        },
+      ],
+    };
+
+    return res.status(200).json(response);
+  }, randomDelay);
 }
