@@ -1,4 +1,7 @@
 export default function handler(req, res) {
+  // Variable para controlar si se aplica delay o no
+  const enableDelay = false; // Cambiar a false para desactivar el delay
+  
   // Configuración básica de CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'PUT, OPTIONS');
@@ -17,10 +20,10 @@ export default function handler(req, res) {
     });
   }
 
-  // Generar delay aleatorio entre 100ms y 2000ms
-  const randomDelay = Math.floor(Math.random() * (2000 - 100 + 1)) + 100;
+  // Generar delay aleatorio entre 100ms y 2000ms (solo si está habilitado)
+  const randomDelay = enableDelay ? Math.floor(Math.random() * (2000 - 100 + 1)) + 100 : 0;
 
-  // Simular delay antes de responder
+  // Simular delay antes de responder (si está habilitado)
   setTimeout(() => {
     // Respuesta fija
     const response = {
