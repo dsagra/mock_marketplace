@@ -43,6 +43,10 @@ export default function handler(req, res) {
       ],
     };
 
-    return res.status(500).json(response);
+      // Lanzar error 500 para pruebas
+      return res.status(500).json({
+        success: false,
+        message: "Error interno del servidor (prueba)",
+      });
   }, randomDelay);
 }
