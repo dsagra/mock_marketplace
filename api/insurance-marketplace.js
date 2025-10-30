@@ -29,24 +29,27 @@ export default function handler(req, res) {
     const response = {
       products: [
         {
-          productCode: "SEGURO_DE_HOGAR",
+          productCode: "SEGURO_VIVIENDA",
           status: "AVAILABLE",
           additionalData: {
             productPageData: [
               {
-                fieldTitle: "Un valor",
+                fieldTitle: "Valor asegurado",
                 fieldValue: "2039",
               },
             ],
           },
         },
+        {
+          productCode: "SEGURO_VEHICULO",
+          status: "AVAILABLE",
+        },
       ],
     };
 
       // Lanzar error 500 para pruebas
-      return res.status(500).json({
-        success: false,
-        message: "Error interno del servidor (prueba)",
+      return res.status(200).json({
+      response,
       });
   }, randomDelay);
 }
