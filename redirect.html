@@ -146,63 +146,68 @@
             // Timestamp para detectar si la app se abrió
             const startTime = Date.now();
             let appOpened = false;
-            let redirected = false;
 
             // Listener para detectar si perdemos el foco (la app se abrió)
             const blurHandler = () => {
                 appOpened = true;
-                console.log('Página perdió foco - app probablemente abierta');
+                console.log('Página perdió foco - app abierta');
             };
             
             const visibilityHandler = () => {
                 if (document.hidden) {
                     appOpened = true;
-                    console.log('Página oculta - app probablemente abierta');
+                    console.log('Página oculta - app abierta');
                 }
             };
             
             window.addEventListener('blur', blurHandler);
             document.addEventListener('visibilitychange', visibilityHandler);
 
-            // Intentar abrir la app directamente
-            // Usamos un pequeño delay para permitir que los event listeners se registren
+            // Primero configurar el fallback a la tienda
+            const fallbackTimer = setTimeout(() => {
+                console.log('Fallback: App no abierta, yendo a tienda');
+                window.location.href = storeUrl;
+            }, 1500);
+
+            // Intentar abrir la app con iframe oculto (no genera error visible)
             setTimeout(() => {
                 console.log('Intentando abrir app:', appUrl);
                 
-                // Para iOS, crear un link temporal y hacer click
-                const link = document.createElement('a');
-                link.href = appUrl;
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                link.click();
+                const iframe = document.createElement('iframe');
+                iframe.style.border = 'none';
+                iframe.style.width = '1px';
+                iframe.style.height = '1px';
+                iframe.style.position = 'absolute';
+                iframe.style.top = '-9999px';
                 
-                // Limpiar el link después de un momento
+                iframe.onload = () => {
+                    console.log('iframe onload - app no disponible');
+                };
+                
+                iframe.onerror = () => {
+                    console.log('iframe onerror - app no disponible');
+                };
+                
+                document.body.appendChild(iframe);
+                iframe.src = appUrl;
+                
+                // Si la app se abre, cancelar el fallback
                 setTimeout(() => {
-                    if (link.parentNode) {
-                        document.body.removeChild(link);
+                    if (appOpened) {
+                        console.log('App abierta, cancelando fallback');
+                        clearTimeout(fallbackTimer);
+                        deviceInfo.textContent = `¡App abierta!`;
                     }
-                }, 100);
-            }, 300);
-
-            // Fallback: Si después de 2 segundos seguimos aquí, ir a la tienda
-            setTimeout(() => {
-                window.removeEventListener('blur', blurHandler);
-                document.removeEventListener('visibilitychange', visibilityHandler);
-                
-                const timeElapsed = Date.now() - startTime;
-                console.log('Tiempo transcurrido:', timeElapsed, 'App abierta:', appOpened);
-                
-                // Si no se abrió la app, ir a la tienda
-                if (!appOpened && !redirected) {
-                    deviceInfo.textContent = `App no detectada. Redirigiendo a la tienda...`;
-                    console.log('Redirigiendo a tienda:', storeUrl);
-                    redirected = true;
-                    window.location.href = storeUrl;
-                } else if (appOpened) {
-                    // La app se abrió
-                    deviceInfo.textContent = `¡App abierta! Si no se abrió, haz clic en el link abajo.`;
-                }
-            }, 2000);
+                    
+                    // Limpiar iframe
+                    if (iframe.parentNode) {
+                        document.body.removeChild(iframe);
+                    }
+                    
+                    window.removeEventListener('blur', blurHandler);
+                    document.removeEventListener('visibilitychange', visibilityHandler);
+                }, 1000);
+            }, 100);
         }
 
         // Redirigir según el dispositivo
