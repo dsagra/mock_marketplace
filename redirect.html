@@ -165,55 +165,47 @@
                 console.log('Página pagehide - app abierta');
             };
             
-            window.addEventListener('blur', blurHandler);
-            document.addEventListener('visibilitychange', visibilityHandler);
-            window.addEventListener('pagehide', pageHideHandler);
+            // Listener para focus - la página recupera el foco si no se abrió la app
+            const focusHandler = () => {
+                console.log('Página recuperó foco - app probablemente no se abrió');
+            };
+            
+            window.addEventListener('blur', blurHandler, false);
+            document.addEventListener('visibilitychange', visibilityHandler, false);
+            window.addEventListener('pagehide', pageHideHandler, false);
+            window.addEventListener('focus', focusHandler, false);
 
-            // Primero programar la redirección a la tienda
-            const storeRedirect = () => {
-                timerCompleted = true;
+            // Limpiar listeners
+            const cleanup = () => {
+                window.removeEventListener('blur', blurHandler);
+                document.removeEventListener('visibilitychange', visibilityHandler);
+                window.removeEventListener('pagehide', pageHideHandler);
+                window.removeEventListener('focus', focusHandler);
+            };
+
+            // Intentar abrir la app directamente
+            const attemptTime = Date.now();
+            console.log('Intentando abrir app:', appUrl);
+            
+            // Método directo - funciona mejor en iOS
+            window.location = appUrl;
+
+            // Después de 3 segundos, verificar y redirigir si es necesario
+            setTimeout(() => {
+                cleanup();
+                
+                const elapsed = Date.now() - attemptTime;
+                console.log('Tiempo transcurrido:', elapsed, 'ms. App abierta:', appOpened);
+                
                 if (!appOpened) {
-                    console.log('Timer completado y app no abierta, yendo a tienda');
+                    console.log('App no se abrió, redirigiendo a tienda');
                     deviceInfo.textContent = `Redirigiendo a la tienda...`;
                     window.location.href = storeUrl;
                 } else {
                     console.log('App abierta exitosamente');
+                    deviceInfo.textContent = `¡App abierta!`;
                 }
-                // Limpiar listeners
-                window.removeEventListener('blur', blurHandler);
-                document.removeEventListener('visibilitychange', visibilityHandler);
-                window.removeEventListener('pagehide', pageHideHandler);
-            };
-
-            // Intentar abrir la app con iframe invisible
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.style.width = '0';
-            iframe.style.height = '0';
-            iframe.style.border = 'none';
-            iframe.style.position = 'fixed';
-            iframe.style.top = '-1px';
-            iframe.style.left = '-1px';
-            
-            document.body.appendChild(iframe);
-            
-            // Usar setTimeout para dar tiempo a detectar si la app se abre
-            setTimeout(() => {
-                try {
-                    console.log('Intentando abrir app con iframe:', appUrl);
-                    iframe.src = appUrl;
-                } catch (e) {
-                    console.error('Error al intentar abrir app:', e);
-                }
-            }, 100);
-
-            // Después de 2 segundos, verificar y redirigir si es necesario
-            setTimeout(() => {
-                if (iframe && iframe.parentNode) {
-                    document.body.removeChild(iframe);
-                }
-                storeRedirect();
-            }, 2000);
+            }, 3000);
         }
 
         // Redirigir según el dispositivo
