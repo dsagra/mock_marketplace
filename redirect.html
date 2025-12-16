@@ -69,9 +69,31 @@
         const androidUrl = getUrlParameter('android') || 'https://play.google.com/';
         const appScheme = getUrlParameter('app') || ''; // URL scheme de la app (ej: myapp://open)
 
-        // Actualizar los links manuales
-        document.getElementById('ios-link').href = iosUrl;
-        document.getElementById('android-link').href = androidUrl;
+        // Validar que las URLs sean válidas
+        function isValidUrl(url) {
+            if (!url || url.trim() === '') return false;
+            try {
+                new URL(url);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        console.log('URLs recibidas:', { iosUrl, androidUrl, appScheme });
+        console.log('URLs válidas:', { 
+            ios: isValidUrl(iosUrl), 
+            android: isValidUrl(androidUrl),
+            app: appScheme ? isValidUrl(appScheme) : 'N/A'
+        });
+
+        // Actualizar los links manuales solo si son válidos
+        if (isValidUrl(iosUrl)) {
+            document.getElementById('ios-link').href = iosUrl;
+        }
+        if (isValidUrl(androidUrl)) {
+            document.getElementById('android-link').href = androidUrl;
+        }
 
         // Detectar el dispositivo
         function detectDevice() {
@@ -181,6 +203,11 @@
         // Si hay app scheme, intentar abrirla. Si no, ir directo a la tienda
         switch(device) {
             case 'ios':
+                if (!isValidUrl(iosUrl)) {
+                    deviceInfo.textContent = 'Error: URL de iOS no válida';
+                    console.error('URL de iOS no válida:', iosUrl);
+                    break;
+                }
                 if (appScheme) {
                     tryOpenApp(appScheme, iosUrl, 'iOS');
                 } else {
@@ -192,6 +219,11 @@
                 }
                 break;
             case 'android':
+                if (!isValidUrl(androidUrl)) {
+                    deviceInfo.textContent = 'Error: URL de Android no válida';
+                    console.error('URL de Android no válida:', androidUrl);
+                    break;
+                }
                 if (appScheme) {
                     tryOpenApp(appScheme, androidUrl, 'Android');
                 } else {
