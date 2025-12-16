@@ -161,44 +161,33 @@
                 }
             };
             
-            // Listener para capturar errores de navegación (Safari)
-            const errorHandler = () => {
-                console.log('Error al intentar navegar - redirigiendo a tienda');
-                if (!redirected) {
-                    redirected = true;
-                    window.location.href = storeUrl;
-                }
-            };
-            
             window.addEventListener('blur', blurHandler);
             document.addEventListener('visibilitychange', visibilityHandler);
-            window.addEventListener('pagehide', errorHandler);
 
-            // Crear un iframe oculto para intentar abrir la app (método más seguro para Safari)
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.style.width = '0';
-            iframe.style.height = '0';
-            document.body.appendChild(iframe);
-            
-            try {
-                iframe.src = appUrl;
-                console.log('Intentando abrir app con iframe:', appUrl);
-            } catch (e) {
-                console.error('Error al intentar abrir app:', e);
-                window.location.href = storeUrl;
-                return;
-            }
+            // Intentar abrir la app directamente
+            // Usamos un pequeño delay para permitir que los event listeners se registren
+            setTimeout(() => {
+                console.log('Intentando abrir app:', appUrl);
+                
+                // Para iOS, crear un link temporal y hacer click
+                const link = document.createElement('a');
+                link.href = appUrl;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                
+                // Limpiar el link después de un momento
+                setTimeout(() => {
+                    if (link.parentNode) {
+                        document.body.removeChild(link);
+                    }
+                }, 100);
+            }, 300);
 
-            // Fallback: Si después de 1.5 segundos seguimos aquí, ir a la tienda
+            // Fallback: Si después de 2 segundos seguimos aquí, ir a la tienda
             setTimeout(() => {
                 window.removeEventListener('blur', blurHandler);
                 document.removeEventListener('visibilitychange', visibilityHandler);
-                window.removeEventListener('pagehide', errorHandler);
-                
-                if (iframe.parentNode) {
-                    document.body.removeChild(iframe);
-                }
                 
                 const timeElapsed = Date.now() - startTime;
                 console.log('Tiempo transcurrido:', timeElapsed, 'App abierta:', appOpened);
@@ -213,7 +202,7 @@
                     // La app se abrió
                     deviceInfo.textContent = `¡App abierta! Si no se abrió, haz clic en el link abajo.`;
                 }
-            }, 1500);
+            }, 2000);
         }
 
         // Redirigir según el dispositivo
