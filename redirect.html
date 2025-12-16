@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redireccionando...</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .links {
+            margin-top: 30px;
+            font-size: 14px;
+        }
+        .links a {
+            color: white;
+            text-decoration: underline;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Redireccionando...</h1>
+        <div class="spinner"></div>
+        <p id="device-info">Detectando dispositivo...</p>
+        <div class="links">
+            <p>Si no te redirige automáticamente:</p>
+            <a href="#" id="ios-link">Ir a iOS</a>
+            <a href="#" id="android-link">Ir a Android</a>
+        </div>
+    </div>
+
+    <script>
+        // Función para obtener parámetros de la URL
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        // Obtener las URLs de los parámetros
+        const iosUrl = getUrlParameter('ios') || 'https://apps.apple.com/';
+        const androidUrl = getUrlParameter('android') || 'https://play.google.com/';
+        const appScheme = getUrlParameter('app') || ''; // URL scheme de la app (ej: myapp://open)
+
+        // Actualizar los links manuales
+        document.getElementById('ios-link').href = iosUrl;
+        document.getElementById('android-link').href = androidUrl;
+
+        // Detectar el dispositivo
+        function detectDevice() {
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            
+            // Detectar iOS
+            if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+                return 'ios';
+            }
+            
+            // Detectar Android
+            if (/android/i.test(userAgent)) {
+                return 'android';
+            }
+            
+            // Desktop u otro dispositivo
+            return 'other';
+        }
+
+        // Intentar abrir la app y si falla, ir a la tienda
+        function tryOpenApp(appUrl, storeUrl, deviceType) {
+            const deviceInfo = document.getElementById('device-info');
+            
+            if (!appUrl) {
+                // Si no hay URL de app, ir directo a la tienda
+                deviceInfo.textContent = `Dispositivo ${deviceType} detectado. Redirigiendo a la tienda...`;
+                setTimeout(() => {
+                    window.location.href = storeUrl;
+                }, 1500);
+                return;
+            }
+
+            deviceInfo.textContent = `Intentando abrir la app...`;
+            
+            // Timestamp para detectar si la app se abrió
+            const startTime = Date.now();
+            let hasFocus = true;
+
+            // Listener para detectar si perdemos el foco (la app se abrió)
+            const blurHandler = () => {
+                hasFocus = false;
+            };
+            window.addEventListener('blur', blurHandler);
+
+            // Intentar abrir la app
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = appUrl;
+            document.body.appendChild(iframe);
+
+            // Fallback: Si después de 2.5 segundos seguimos aquí, ir a la tienda
+            setTimeout(() => {
+                window.removeEventListener('blur', blurHandler);
+                document.body.removeChild(iframe);
+                
+                const timeElapsed = Date.now() - startTime;
+                
+                // Si pasó poco tiempo y seguimos con foco, probablemente la app no está instalada
+                if (hasFocus && timeElapsed < 3000) {
+                    deviceInfo.textContent = `App no detectada. Redirigiendo a la tienda...`;
+                    setTimeout(() => {
+                        window.location.href = storeUrl;
+                    }, 1000);
+                } else {
+                    // La app probablemente se abrió
+                    deviceInfo.textContent = `¡App abierta! Si no se abrió, haz clic en el link abajo.`;
+                }
+            }, 2500);
+
+            // Para iOS, también intentar con window.location
+            if (deviceType === 'iOS') {
+                setTimeout(() => {
+                    window.location.href = appUrl;
+                }, 100);
+            }
+        }
+
+        // Redirigir según el dispositivo
+        const device = detectDevice();
+        const deviceInfo = document.getElementById('device-info');
+
+        switch(device) {
+            case 'ios':
+                tryOpenApp(appScheme, iosUrl, 'iOS');
+                break;
+            case 'android':
+                tryOpenApp(appScheme, androidUrl, 'Android');
+                break;
+            default:
+                deviceInfo.textContent = 'Dispositivo no móvil detectado. Por favor, selecciona tu plataforma:';
+                break;
+        }
+    </script>
+</body>
+</html>
