@@ -76,18 +76,29 @@
         // Detectar el dispositivo
         function detectDevice() {
             const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            const platform = navigator.platform || '';
             
-            // Detectar iOS
-            if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+            console.log('User Agent:', userAgent);
+            console.log('Platform:', platform);
+            
+            // Detectar iOS - múltiples métodos
+            const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+            const isIOSPlatform = /iPad|iPhone|iPod/.test(platform);
+            const isIOSTouch = navigator.maxTouchPoints && navigator.maxTouchPoints > 2 && /MacIntel/.test(platform);
+            
+            if (isIOS || isIOSPlatform || isIOSTouch) {
+                console.log('Detectado: iOS');
                 return 'ios';
             }
             
             // Detectar Android
             if (/android/i.test(userAgent)) {
+                console.log('Detectado: Android');
                 return 'android';
             }
             
             // Desktop u otro dispositivo
+            console.log('Detectado: Otro dispositivo');
             return 'other';
         }
 
@@ -95,10 +106,14 @@
         function tryOpenApp(appUrl, storeUrl, deviceType) {
             const deviceInfo = document.getElementById('device-info');
             
+            console.log('tryOpenApp llamado:', { appUrl, storeUrl, deviceType });
+            
             if (!appUrl) {
                 // Si no hay URL de app, ir directo a la tienda
                 deviceInfo.textContent = `Dispositivo ${deviceType} detectado. Redirigiendo a la tienda...`;
+                console.log('Redirigiendo a:', storeUrl);
                 setTimeout(() => {
+                    console.log('Ejecutando redirección...');
                     window.location.href = storeUrl;
                 }, 1500);
                 return;
@@ -109,29 +124,45 @@
             // Timestamp para detectar si la app se abrió
             const startTime = Date.now();
             let hasFocus = true;
+            let appOpened = false;
 
             // Listener para detectar si perdemos el foco (la app se abrió)
             const blurHandler = () => {
                 hasFocus = false;
+                appOpened = true;
+                console.log('Página perdió foco - app probablemente abierta');
             };
+            
+            const visibilityHandler = () => {
+                if (document.hidden) {
+                    appOpened = true;
+                    console.log('Página oculta - app probablemente abierta');
+                }
+            };
+            
             window.addEventListener('blur', blurHandler);
+            document.addEventListener('visibilitychange', visibilityHandler);
 
-            // Intentar abrir la app
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = appUrl;
-            document.body.appendChild(iframe);
+            // Intentar abrir la app - método directo (mejor para Safari)
+            try {
+                window.location.href = appUrl;
+                console.log('Intentando abrir app con window.location:', appUrl);
+            } catch (e) {
+                console.error('Error al intentar abrir app:', e);
+            }
 
             // Fallback: Si después de 2.5 segundos seguimos aquí, ir a la tienda
             setTimeout(() => {
                 window.removeEventListener('blur', blurHandler);
-                document.body.removeChild(iframe);
+                document.removeEventListener('visibilitychange', visibilityHandler);
                 
                 const timeElapsed = Date.now() - startTime;
+                console.log('Tiempo transcurrido:', timeElapsed, 'App abierta:', appOpened);
                 
                 // Si pasó poco tiempo y seguimos con foco, probablemente la app no está instalada
-                if (hasFocus && timeElapsed < 3000) {
+                if (!appOpened && hasFocus) {
                     deviceInfo.textContent = `App no detectada. Redirigiendo a la tienda...`;
+                    console.log('Redirigiendo a tienda:', storeUrl);
                     setTimeout(() => {
                         window.location.href = storeUrl;
                     }, 1000);
@@ -140,13 +171,6 @@
                     deviceInfo.textContent = `¡App abierta! Si no se abrió, haz clic en el link abajo.`;
                 }
             }, 2500);
-
-            // Para iOS, también intentar con window.location
-            if (deviceType === 'iOS') {
-                setTimeout(() => {
-                    window.location.href = appUrl;
-                }, 100);
-            }
         }
 
         // Redirigir según el dispositivo
