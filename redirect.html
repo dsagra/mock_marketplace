@@ -163,51 +163,25 @@
             window.addEventListener('blur', blurHandler);
             document.addEventListener('visibilitychange', visibilityHandler);
 
-            // Primero configurar el fallback a la tienda
-            const fallbackTimer = setTimeout(() => {
-                console.log('Fallback: App no abierta, yendo a tienda');
-                window.location.href = storeUrl;
-            }, 1500);
+            // Intentar abrir la app inmediatamente
+            console.log('Intentando abrir app:', appUrl);
+            window.location.href = appUrl;
 
-            // Intentar abrir la app con iframe oculto (no genera error visible)
-            setTimeout(() => {
-                console.log('Intentando abrir app:', appUrl);
+            // Configurar el fallback a la tienda
+            // Si la app se abre, la página perderá foco y no se ejecutará el fallback
+            const fallbackTimer = setTimeout(() => {
+                window.removeEventListener('blur', blurHandler);
+                document.removeEventListener('visibilitychange', visibilityHandler);
                 
-                const iframe = document.createElement('iframe');
-                iframe.style.border = 'none';
-                iframe.style.width = '1px';
-                iframe.style.height = '1px';
-                iframe.style.position = 'absolute';
-                iframe.style.top = '-9999px';
-                
-                iframe.onload = () => {
-                    console.log('iframe onload - app no disponible');
-                };
-                
-                iframe.onerror = () => {
-                    console.log('iframe onerror - app no disponible');
-                };
-                
-                document.body.appendChild(iframe);
-                iframe.src = appUrl;
-                
-                // Si la app se abre, cancelar el fallback
-                setTimeout(() => {
-                    if (appOpened) {
-                        console.log('App abierta, cancelando fallback');
-                        clearTimeout(fallbackTimer);
-                        deviceInfo.textContent = `¡App abierta!`;
-                    }
-                    
-                    // Limpiar iframe
-                    if (iframe.parentNode) {
-                        document.body.removeChild(iframe);
-                    }
-                    
-                    window.removeEventListener('blur', blurHandler);
-                    document.removeEventListener('visibilitychange', visibilityHandler);
-                }, 1000);
-            }, 100);
+                if (!appOpened) {
+                    console.log('Fallback: App no abierta después de 2.5s, yendo a tienda');
+                    deviceInfo.textContent = `App no detectada. Redirigiendo a la tienda...`;
+                    window.location.href = storeUrl;
+                } else {
+                    console.log('App abierta exitosamente');
+                    deviceInfo.textContent = `¡App abierta!`;
+                }
+            }, 2500);
         }
 
         // Redirigir según el dispositivo
