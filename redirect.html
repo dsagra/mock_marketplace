@@ -149,9 +149,12 @@
                 console.log('Intentando abrir app con window.location:', appUrl);
             } catch (e) {
                 console.error('Error al intentar abrir app:', e);
+                // Si hay error, ir directo a la tienda
+                window.location.href = storeUrl;
+                return;
             }
 
-            // Fallback: Si después de 2.5 segundos seguimos aquí, ir a la tienda
+            // Fallback: Si después de 2 segundos seguimos aquí, ir a la tienda
             setTimeout(() => {
                 window.removeEventListener('blur', blurHandler);
                 document.removeEventListener('visibilitychange', visibilityHandler);
@@ -163,26 +166,41 @@
                 if (!appOpened && hasFocus) {
                     deviceInfo.textContent = `App no detectada. Redirigiendo a la tienda...`;
                     console.log('Redirigiendo a tienda:', storeUrl);
-                    setTimeout(() => {
-                        window.location.href = storeUrl;
-                    }, 1000);
+                    window.location.href = storeUrl;
                 } else {
                     // La app probablemente se abrió
                     deviceInfo.textContent = `¡App abierta! Si no se abrió, haz clic en el link abajo.`;
                 }
-            }, 2500);
+            }, 2000);
         }
 
         // Redirigir según el dispositivo
         const device = detectDevice();
         const deviceInfo = document.getElementById('device-info');
 
+        // Si hay app scheme, intentar abrirla. Si no, ir directo a la tienda
         switch(device) {
             case 'ios':
-                tryOpenApp(appScheme, iosUrl, 'iOS');
+                if (appScheme) {
+                    tryOpenApp(appScheme, iosUrl, 'iOS');
+                } else {
+                    deviceInfo.textContent = 'Dispositivo iOS detectado. Redirigiendo...';
+                    console.log('Sin app scheme, redirigiendo directo a:', iosUrl);
+                    setTimeout(() => {
+                        window.location.href = iosUrl;
+                    }, 1000);
+                }
                 break;
             case 'android':
-                tryOpenApp(appScheme, androidUrl, 'Android');
+                if (appScheme) {
+                    tryOpenApp(appScheme, androidUrl, 'Android');
+                } else {
+                    deviceInfo.textContent = 'Dispositivo Android detectado. Redirigiendo...';
+                    console.log('Sin app scheme, redirigiendo directo a:', androidUrl);
+                    setTimeout(() => {
+                        window.location.href = androidUrl;
+                    }, 1000);
+                }
                 break;
             default:
                 deviceInfo.textContent = 'Dispositivo no móvil detectado. Por favor, selecciona tu plataforma:';
