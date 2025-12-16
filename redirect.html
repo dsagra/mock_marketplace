@@ -143,9 +143,8 @@
 
             deviceInfo.textContent = `Intentando abrir la app...`;
             
-            // Timestamp para detectar si la app se abrió
-            const startTime = Date.now();
             let appOpened = false;
+            let timerCompleted = false;
 
             // Listener para detectar si perdemos el foco (la app se abrió)
             const blurHandler = () => {
@@ -160,28 +159,61 @@
                 }
             };
             
+            // Listener para antes de que la página se descargue (pagehide)
+            const pageHideHandler = () => {
+                appOpened = true;
+                console.log('Página pagehide - app abierta');
+            };
+            
             window.addEventListener('blur', blurHandler);
             document.addEventListener('visibilitychange', visibilityHandler);
+            window.addEventListener('pagehide', pageHideHandler);
 
-            // Intentar abrir la app inmediatamente
-            console.log('Intentando abrir app:', appUrl);
-            window.location.href = appUrl;
-
-            // Configurar el fallback a la tienda
-            // Si la app se abre, la página perderá foco y no se ejecutará el fallback
-            const fallbackTimer = setTimeout(() => {
-                window.removeEventListener('blur', blurHandler);
-                document.removeEventListener('visibilitychange', visibilityHandler);
-                
+            // Primero programar la redirección a la tienda
+            const storeRedirect = () => {
+                timerCompleted = true;
                 if (!appOpened) {
-                    console.log('Fallback: App no abierta después de 2.5s, yendo a tienda');
-                    deviceInfo.textContent = `App no detectada. Redirigiendo a la tienda...`;
+                    console.log('Timer completado y app no abierta, yendo a tienda');
+                    deviceInfo.textContent = `Redirigiendo a la tienda...`;
                     window.location.href = storeUrl;
                 } else {
                     console.log('App abierta exitosamente');
-                    deviceInfo.textContent = `¡App abierta!`;
                 }
-            }, 2500);
+                // Limpiar listeners
+                window.removeEventListener('blur', blurHandler);
+                document.removeEventListener('visibilitychange', visibilityHandler);
+                window.removeEventListener('pagehide', pageHideHandler);
+            };
+
+            // Intentar abrir la app con iframe invisible
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = 'none';
+            iframe.style.position = 'fixed';
+            iframe.style.top = '-1px';
+            iframe.style.left = '-1px';
+            
+            document.body.appendChild(iframe);
+            
+            // Usar setTimeout para dar tiempo a detectar si la app se abre
+            setTimeout(() => {
+                try {
+                    console.log('Intentando abrir app con iframe:', appUrl);
+                    iframe.src = appUrl;
+                } catch (e) {
+                    console.error('Error al intentar abrir app:', e);
+                }
+            }, 100);
+
+            // Después de 2 segundos, verificar y redirigir si es necesario
+            setTimeout(() => {
+                if (iframe && iframe.parentNode) {
+                    document.body.removeChild(iframe);
+                }
+                storeRedirect();
+            }, 2000);
         }
 
         // Redirigir según el dispositivo
