@@ -30,7 +30,7 @@ export default function handler(req, res) {
       products: [
         {
           productCode: "TARJETA_GS_CLASICA",
-          status: "UNAVAILABLE",
+          status: "AVAILABLE",
           additionalData: null
         }
       ]
