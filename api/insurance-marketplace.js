@@ -1,6 +1,6 @@
 export default function handler(req, res) {
   // Variable para controlar si se simula timeout
-  const simulateTimeout = true; // Cambiar a false para que funcione normalmente
+  const simulateTimeout = false; // Cambiar a true para simular timeout
   
   // Configuración básica de CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
