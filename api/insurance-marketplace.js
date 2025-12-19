@@ -1,6 +1,6 @@
 export default function handler(req, res) {
-  // Variable para controlar si se aplica delay o no
-  const enableDelay = true; // Cambiar a false para desactivar el delay
+  // Variable para controlar si se simula timeout
+  const simulateTimeout = true; // Cambiar a false para que funcione normalmente
   
   // Configuración básica de CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -20,7 +20,15 @@ export default function handler(req, res) {
     });
   }
 
+  // Si simulateTimeout está activado, nunca responder (causar timeout)
+  if (simulateTimeout) {
+    console.log('Simulando timeout - la petición nunca responderá');
+    // No hacer nada, dejar que el cliente espere hasta su timeout
+    return;
+  }
+
   // Generar delay aleatorio entre 100ms y 2000ms (solo si está habilitado)
+  const enableDelay = true;
   const randomDelay = enableDelay ? Math.floor(Math.random() * (2000 - 100 + 1)) + 100 : 0;
 
   // Simular delay antes de responder (si está habilitado)
