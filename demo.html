@@ -1,55 +1,30 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demo Flutter WebView</title>
+    <title>Test WebView</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        button {
-            padding: 15px 30px;
-            font-size: 18px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-        
-        button:hover {
-            background-color: #45a049;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
-        }
-        
-        button:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
+        body { font-family: Arial; padding: 20px; }
+        button { padding: 15px 30px; margin: 10px; font-size: 16px; }
     </style>
 </head>
 <body>
-    <button onclick="notificarFlutter()">Comprar Producto</button>
-
+    <h1>Test Flutter WebView</h1>
+    <button onclick="sendToFlutter('Producto 1')">Producto 1</button>
+    <button onclick="sendToFlutter('Producto 2')">Producto 2</button>
+    
     <script>
-        function notificarFlutter() {
-            window.flutter_inappwebview.callHandler('buttonClickHandler', {
-                action: 'purchase',
-                productId: '123',
-                productName: 'Laptop',
-                price: 999.99
-            });
+        function sendToFlutter(productName) {
+            if (window.flutter_inappwebview) {
+                window.flutter_inappwebview.callHandler('buttonClickHandler', {
+                    action: 'product-click',
+                    product: productName,
+                    timestamp: new Date().toISOString()
+                });
+            } else {
+                alert('Flutter handler no disponible');
+            }
         }
     </script>
 </body>
